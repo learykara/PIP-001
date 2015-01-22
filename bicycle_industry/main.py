@@ -1,5 +1,5 @@
 
-from bicycle import Bicycle, BikeShop, Customer, model_information
+from bicycle import Bicycle, BikeShop, Customer, bicycle_model_information
 
 
 # Instantiate Bicycle Objects

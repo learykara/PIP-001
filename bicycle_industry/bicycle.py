@@ -7,24 +7,74 @@
 from collections import defaultdict
 
 
-
-
-model_information = {
-    'cruiser': {'weight': 100, 'production_cost': 150},
-    'racer': {'weight': 80, 'production_cost': 250},
-    'mountain': {'weight': 120, 'production_cost': 200},
-    'huffy': {'weight': 90, 'production_cost': 125},
-    'tandem': {'weight': 150, 'production_cost': 210},
-    'schwinn': {'weight': 110, 'production_cost': 175}
+bicycle_model_information = {
+    'cruiser': {
+        'weight': 120,
+        'production_cost': 140,
+        'wheel_model_name': 'standard',
+        'frame_model_name': 'carbon'},
+    'racer': {
+        'weight': 80,
+        'production_cost': 250,
+        'wheel_model_name': 'racing',
+        'frame_model_name': 'aluminum'},
+    'mountain': {
+        'weight': 140,
+        'production_cost': 200,
+        'wheel_model_name': 'mountain',
+        'frame_model_name': 'steel'},
+    'huffy': {
+        'weight': 130,
+        'production_cost': 180,
+        'wheel_model_name': 'standard',
+        'frame_model_name': 'steel'},
+    'tandem': {
+        'weight': 190,
+        'production_cost': 210,
+        'wheel_model_name': 'standard',
+        'frame_model_name': 'tandem'},
+    'schwinn': {
+        'weight': 110,
+        'production_cost': 240,
+        'wheel_model_name': 'racing',
+        'frame_model_name': 'steel'}
 }
+
+wheel_information = {
+    'racing': {'weight': 20, 'production_cost': 60},
+    'mountain': {'weight': 35, 'production_cost': 40},
+    'standard': {'weight': 30, 'production_cost': 30}
+}
+
+frame_information = {
+    'aluminum': {'weight': 40, 'production_cost': 130},
+    'carbon': {'weight': 60, 'production_cost': 80},
+    'steel': {'weight': 70, 'production_cost': 120},
+    'tandem': {'weight': 130, 'production_cost': 150}
+}
+
+
+def valid_bicycle_spec(model_name, property):
+    """Validates that the `property` of the bicycle is the sum of its parts
+
+    :param model_name: a ``string`` representing the name of the bike model_name
+    :param property: the property to be checked (weight or production_cost)
+    """
+    wheel_model = bicycle_model_information.get(
+        model_name).get('wheel_model_name')
+    frame_model = bicycle_model_information.get(
+        model_name).get('frame_model_name')
+    return (bicycle_model_information.get(model_name).get(property) ==
+        wheel_information.get(wheel_model).get(property) * 2 +
+        frame_information.get(frame_model).get(property))
 
 
 class Bicycle(object):
     """Models a bicycle object"""
     def __init__(self, name):
         self.name = name
-        self.weight = model_information[name]['weight']
-        self.production_cost = model_information[name]['production_cost']
+        self.weight = bicycle_model_information[name]['weight']
+        self.production_cost = bicycle_model_information[name]['production_cost']
 
 
 class BikeShop(object):
@@ -77,3 +127,17 @@ class Customer(object):
         print 'Transaction successful.'
 
 
+class Wheel(object):
+    """Models the bicycle wheels"""
+    def __init__(self, model):
+        self.model = model
+        self.weight = wheel_information[model]['weight']
+        self.production_cost = wheel_information[model]['production_cost']
+
+
+class Frame(object):
+    """Models the bicycle frame"""
+    def __init__(self, material):
+        self.material = material
+        self.weight = frame_information[material]['weight']
+        self.production_cost = frame_information[material]['production_cost']
