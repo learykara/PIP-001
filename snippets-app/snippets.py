@@ -1,4 +1,3 @@
-
 import argparse
 import logging
 import psycopg2
@@ -46,17 +45,22 @@ def get(name):
             "select message from snippets where keyword = '{}'".format(name))
         row = cursor.fetchone()
     if row is None: # difference between this and `if not snippet` ?
-        return 'Error - snippet with keword {} not found'.format(name)
+        return None # can use this in update fn
     logging.debug("Snippet retrieved successfully.")
+
     return row[0]
 
 def delete(name):
     """Delete the snippet with a given name.
 
-    If there is no such snippet, return an error
+    Return the name of the snippet. # QQ: what to do here?
     """
-    logging.error("FIXME: Unimplemented - delete({!r})".format(name))
-
+    logging.info("Deleting snippet {!r}".format(name))
+    with connection, connection.cursor() as cursor:
+        cursor.execute(
+            "delete from snippets where keyword = '{}'".format(name))
+    logging.debug("Snippet deleted successfully.")
+    return name 
 
 def update(name, snippet):
     """Replace the existing snippet with a given name.
@@ -65,8 +69,17 @@ def update(name, snippet):
 
     Returns the snippet.
     """
-    logging.error(
-        "FIXME: Unimplemented - update({!r}, {!r})".format(name, snippet))
+    logging.info("Updating snippet {!r}: {!r}".format(name, snippet))
+    if not get(name):
+        logging.info("Snippet {!r} does not exist.".format(name))
+        return put(name, snippet)
+    # put(name, snippet)  # QQ if I can just call put to update, what is the point of this fn?
+    with connection, connection.cursor() as cursor:
+        cursor.execute(
+            "update snippets set message = '{}'"
+            " where keyword = '{}'".format(snippet, name))
+    logging.info("Snippet updated successfully")
+    return name, snippet
 
 
 def main():
@@ -89,6 +102,17 @@ def main():
     get_parser = subparsers.add_parser("get", help="Retrieve a snippet")
     get_parser.add_argument("name", help="The name of the snippet")
 
+    # Subparser for the delete command
+    logging.debug("Constructing delete subparser")
+    delete_parser = subparsers.add_parser("delete", help="Delete a snippet")
+    delete_parser.add_argument("name", help="The name of the snippet")
+
+    # Subparser for the update command
+    logging.debug("Constructing the update subparser")
+    update_parser = subparsers.add_parser("update", help="Update a snippet")
+    update_parser.add_argument("name", help="The name of the snippet")
+    update_parser.add_argument("snippet", help="The snippet of text")
+
     arguments = parser.parse_args(sys.argv[1:])
 
     # Convert parsed arguments from Namespace to dictionary
@@ -101,6 +125,12 @@ def main():
     elif command == "get":
         snippet = get(**arguments)
         print("Retrieved snippet: {!r}".format(snippet))
+    elif command == "delete":
+        name = delete(**arguments)
+        print("Deleted snippet: {!r}".format(name))
+    elif command == "update":
+        name, snippet = update(**arguments)
+        print("Updated snippet {!r} as {!r}".format(name, snippet))
 
 
 if __name__ == "__main__":
