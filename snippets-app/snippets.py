@@ -50,6 +50,7 @@ def get(name):
 
     return row[0]
 
+
 def delete(name):
     """Delete the snippet with a given name.
 
@@ -61,6 +62,7 @@ def delete(name):
             "delete from snippets where keyword = '{}'".format(name))
     logging.debug("Snippet deleted successfully.")
     return name 
+
 
 def update(name, snippet):
     """Replace the existing snippet with a given name.
@@ -80,6 +82,19 @@ def update(name, snippet):
             " where keyword = '{}'".format(snippet, name))
     logging.info("Snippet updated successfully")
     return name, snippet
+
+
+def catalog():
+    """Return a list of existing keywords.
+    """
+    logging.info("Retrieving the snippet catalog.")
+    keywords = []
+    with connection, connection.cursor() as cursor:
+        cursor.execute("select keyword from snippets order by keyword")
+        for row in cursor.fetchall():
+            keywords.append(row[0])
+    logging.info("Catalog retrieved successfully")
+    return keywords
 
 
 def main():
@@ -113,6 +128,11 @@ def main():
     update_parser.add_argument("name", help="The name of the snippet")
     update_parser.add_argument("snippet", help="The snippet of text")
 
+    # Subparser for the catalog
+    logging.debug("Constructing the catalog subparser")
+    catalog_parser = subparsers.add_parser(
+        "catalog", help="See existing snippet keywords")
+
     arguments = parser.parse_args(sys.argv[1:])
 
     # Convert parsed arguments from Namespace to dictionary
@@ -131,6 +151,9 @@ def main():
     elif command == "update":
         name, snippet = update(**arguments)
         print("Updated snippet {!r} as {!r}".format(name, snippet))
+    elif command == "catalog":
+        names = catalog()
+        print("Available snippets:\n {}".format([name for name in names]))
 
 
 if __name__ == "__main__":
