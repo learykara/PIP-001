@@ -1,10 +1,15 @@
 
 import argparse
 import logging
+import psycopg2
 import sys
+
 
 # Set the log output file, and the log level
 logging.basicConfig(filename="snippets.log", level=logging.DEBUG)
+connection = psycopg2.connect(
+    "dbname='snippets' user='karaleary' host='localhost'")
+logging.debug("Database connection established.")
 
 
 def put(name, snippet):
@@ -13,8 +18,12 @@ def put(name, snippet):
 
     Returns the name and the snippet
     """
-    logging.error(
-        "FIXME: Unimplemented - put({!r}, {!r}".format(name, snippet))
+    logging.info("Storing snippet {!r}: {!r}".format(name, snippet))
+    cursor = connection.cursor()
+    command = "insert into snippets values ('{}', '{}');"
+    cursor.execute(command.format(name, snippet))
+    connection.commit()
+    logging.debug("Snippet stored successfully.")
     return name, snippet
 
 
@@ -25,9 +34,16 @@ def get(name):
 
     Returns the snippet.
     """
-    logging.error("FIXME: Unimplemented - get({!r})".format(name))
-    return ""
-
+    logging.info("Retrieving snippet {!r}".format(name))
+    cursor = connection.cursor()
+    command = "select * from snippets where keyword = '{}';"
+    cursor.execute(command.format(name))
+    snippet = cursor.fetchone()
+    connection.commit()
+    if snippet is None:
+        return 'Error - snippet with keword {} not found'.format(name)
+    logging.debug("Snippet retrieved successfully.")
+    return snippet
 
 def delete(name):
     """Delete the snippet with a given name.
@@ -66,7 +82,7 @@ def main():
     # Subparser for the get command
     logging.debug("Constructing get subparser")
     get_parser = subparsers.add_parser("get", help="Retrieve a snippet")
-    get_parser.add_pargument("name", help="The name of the snippet")
+    get_parser.add_argument("name", help="The name of the snippet")
 
     arguments = parser.parse_args(sys.argv[1:])
 
