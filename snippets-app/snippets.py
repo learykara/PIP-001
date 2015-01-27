@@ -19,10 +19,16 @@ def put(name, snippet):
     Returns the name and the snippet
     """
     logging.info("Storing snippet {!r}: {!r}".format(name, snippet))
-    cursor = connection.cursor()
-    command = "insert into snippets values ('{}', '{}');"
-    cursor.execute(command.format(name, snippet))
-    connection.commit()
+    with connection, connection.cursor() as cursor:
+        try:
+            cursor.execute(
+                "insert into snippets values ('{}', '{}')".format(
+                name, snippet))
+        except psycopg2.IntegrityError as e:
+            connection.rollback()
+            cursor.execute(
+                "update snippets set message = '{}'"
+                " where keyword = '{}'".format(snippet, name))
     logging.debug("Snippet stored successfully.")
     return name, snippet
 
@@ -35,15 +41,14 @@ def get(name):
     Returns the snippet.
     """
     logging.info("Retrieving snippet {!r}".format(name))
-    cursor = connection.cursor()
-    command = "select * from snippets where keyword = '{}';"
-    cursor.execute(command.format(name))
-    snippet = cursor.fetchone()
-    connection.commit()
-    if snippet is None:
+    with connection, connection.cursor() as cursor: # context manager
+        cursor.execute(
+            "select message from snippets where keyword = '{}'".format(name))
+        row = cursor.fetchone()
+    if row is None: # difference between this and `if not snippet` ?
         return 'Error - snippet with keword {} not found'.format(name)
     logging.debug("Snippet retrieved successfully.")
-    return snippet
+    return row[0]
 
 def delete(name):
     """Delete the snippet with a given name.
