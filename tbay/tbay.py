@@ -19,7 +19,7 @@ bid_table = Table(
     Column('user_id', Integer, ForeignKey('users.id')))
 
 class Item(Base):
-    __tablename__ = "items"
+    __tablename__ = 'items'
 
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
@@ -27,22 +27,26 @@ class Item(Base):
     start_time = Column(DateTime, default=datetime.utcnow)
 
     owner_id = Column(Integer, ForeignKey('users.id'), nullable=False)
-    bids = relationship("User", secondary="tbay_bids", backref="items_bid_on")
+    bids = relationship('Bid', uselist=True, backref='bids_on_item')
 
 class User(Base):
-    __tablename__ = "users"
+    __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)
     username = Column(String, nullable=False)
     password = Column(String, nullable=False)
 
-    items_for_sale = relationship("Item", uselist=True, backref="owner_id")
+    items_for_sale = relationship('Item', uselist=True, backref='owner')
+    bids = relationship('Bid', uselist=True, backref='bid_owner')
 
 class Bid(Base):
-    __tablename__ = "bids"
+    __tablename__ = 'bids'
 
     id = Column(Integer, primary_key=True)
     price = Column(Float, nullable=False)
+
+    item_id = Column(Integer, ForeignKey('items.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
 
 
 Base.metadata.create_all(engine)
