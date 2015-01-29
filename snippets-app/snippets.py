@@ -1,4 +1,5 @@
 import argparse
+import argparse
 import logging
 import psycopg2
 import sys
@@ -44,8 +45,8 @@ def get(name):
         cursor.execute(
             "select message from snippets where keyword = '{}'".format(name))
         row = cursor.fetchone()
-    if row is None: # difference between this and `if not snippet` ?
-        return None # can use this in update fn
+    if row is None:
+        return None
     logging.debug("Snippet retrieved successfully.")
 
     return row[0]
@@ -54,14 +55,14 @@ def get(name):
 def delete(name):
     """Delete the snippet with a given name.
 
-    Return the name of the snippet. # QQ: what to do here?
+    Return the name of the snippet.
     """
     logging.info("Deleting snippet {!r}".format(name))
     with connection, connection.cursor() as cursor:
         cursor.execute(
             "delete from snippets where keyword = '{}'".format(name))
     logging.debug("Snippet deleted successfully.")
-    return name 
+    return name
 
 
 def update(name, snippet):
@@ -75,7 +76,7 @@ def update(name, snippet):
     if not get(name):
         logging.info("Snippet {!r} does not exist.".format(name))
         return put(name, snippet)
-    # put(name, snippet)  # QQ if I can just call put to update, what is the point of this fn?
+    # put(name, snippet)  # if I can just call put to update, what is the point of this fn?
     with connection, connection.cursor() as cursor:
         cursor.execute(
             "update snippets set message = '{}'"
@@ -105,9 +106,9 @@ def main():
 
     subparsers = parser.add_subparsers(
         dest="command", help="Available commands")
-    
+
     # Subparser for the put command
-    logging.debug("Constructing put subparser") # QQ: why is this debug when above is info?
+    logging.debug("Constructing put subparser")
     put_parser = subparsers.add_parser("put", help="Store a snippet")
     put_parser.add_argument("name", help="The name of the snippet")
     put_parser.add_argument("snippet", help="The snippet of text")
