@@ -22,13 +22,13 @@ def put(name, snippet):
     with connection, connection.cursor() as cursor:
         try:
             cursor.execute(
-                "insert into snippets values ('{}', '{}')".format(
+                "insert into snippets values (%s, %s)", (
                 name, snippet))
         except psycopg2.IntegrityError as e:
             connection.rollback()
             cursor.execute(
-                "update snippets set message = '{}'"
-                " where keyword = '{}'".format(snippet, name))
+                "update snippets set message = %s"
+                " where keyword = %s", (snippet, name))
     logging.debug("Snippet stored successfully.")
     return name, snippet
 
@@ -43,7 +43,7 @@ def get(name):
     logging.info("Retrieving snippet {!r}".format(name))
     with connection, connection.cursor() as cursor: # context manager
         cursor.execute(
-            "select message from snippets where keyword = '{}'".format(name))
+            "select message from snippets where keyword = %s", (name,))
         row = cursor.fetchone()
     if row is None:
         return None
@@ -60,29 +60,9 @@ def delete(name):
     logging.info("Deleting snippet {!r}".format(name))
     with connection, connection.cursor() as cursor:
         cursor.execute(
-            "delete from snippets where keyword = '{}'".format(name))
+            "delete from snippets where keyword = %s", (name,))
     logging.debug("Snippet deleted successfully.")
     return name
-
-
-def update(name, snippet):
-    """Replace the existing snippet with a given name.
-
-    If there is no such snippet, create one.
-
-    Returns the snippet.
-    """
-    logging.info("Updating snippet {!r}: {!r}".format(name, snippet))
-    if not get(name):
-        logging.info("Snippet {!r} does not exist.".format(name))
-        return put(name, snippet)
-    # put(name, snippet)  # if I can just call put to update, what is the point of this fn?
-    with connection, connection.cursor() as cursor:
-        cursor.execute(
-            "update snippets set message = '{}'"
-            " where keyword = '{}'".format(snippet, name))
-    logging.info("Snippet updated successfully")
-    return name, snippet
 
 
 def catalog():
@@ -92,8 +72,7 @@ def catalog():
     keywords = []
     with connection, connection.cursor() as cursor:
         cursor.execute("select keyword from snippets order by keyword")
-        for row in cursor.fetchall():
-            keywords.append(row[0])
+        keywords = [row[0] for row in cursor.fetchall()]
     logging.info("Catalog retrieved successfully")
     return keywords
 
@@ -123,12 +102,6 @@ def main():
     delete_parser = subparsers.add_parser("delete", help="Delete a snippet")
     delete_parser.add_argument("name", help="The name of the snippet")
 
-    # Subparser for the update command
-    logging.debug("Constructing the update subparser")
-    update_parser = subparsers.add_parser("update", help="Update a snippet")
-    update_parser.add_argument("name", help="The name of the snippet")
-    update_parser.add_argument("snippet", help="The snippet of text")
-
     # Subparser for the catalog
     logging.debug("Constructing the catalog subparser")
     catalog_parser = subparsers.add_parser(
@@ -149,12 +122,9 @@ def main():
     elif command == "delete":
         name = delete(**arguments)
         print("Deleted snippet: {!r}".format(name))
-    elif command == "update":
-        name, snippet = update(**arguments)
-        print("Updated snippet {!r} as {!r}".format(name, snippet))
     elif command == "catalog":
         names = catalog()
-        print("Available snippets:\n {}".format([name for name in names]))
+        print("Available snippets:\n {}".format(names))
 
 
 if __name__ == "__main__":
