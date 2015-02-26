@@ -1,0 +1,32 @@
+questions
+
+- can a class inherit from two separate classes? ie class User(Base, UserMixin) ?
+- `primary key` vs `unique` ?
+- hashing
+
+login.py
+- from .database import session
+
+in `__init__.py` -- imports at bottom?
+
+setting BLOGFUL_SECRET_KEY (which, by the way, is 'secret')
+every time?
+
+flask LoginManager
+- set  TESTING=True to ignore @login_required in unit tests
+- user_loader -- is that something pretty universally implemented? seems to be the same thing in readthedocs:
+https://flask-login.readthedocs.org/en/latest/
+
+
+** refactor using validate_on_submit!
+http://flask-wtf.readthedocs.org/en/latest/quickstart.html
+
+bottom of this page : http://flask.pocoo.org/docs/0.10/patterns/flashing/
+dahses in for block?
+
+after running `python manage.py db upgrade` -->
+    it adds the column/foreign key to the db but what are the values added? are they all blank?
+
+RESTful -- posts vs post?
+
+how to logout via a post request in a link
