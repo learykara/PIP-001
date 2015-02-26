@@ -10,3 +10,7 @@ div.metadata li {
 a:hover {
     text-decoration: none;
 }
+
+.btn-logout {
+    margin-top: 8px;
+}
