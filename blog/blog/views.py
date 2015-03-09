@@ -40,23 +40,28 @@ def logout_post():
     return redirect(url_for('posts'))
 
 
-@app.route('/')
-@app.route('/page/<int:page>')
-def posts(page=1, paginate_by=10):
-    # Zero-indexed page
-    page_index = page - 1
+def paginate(page_index, paginate_by=10):
     count = session.query(Post).count()
 
     start = page_index * paginate_by
     end = start + paginate_by
 
     total_pages = (count - 1) / paginate_by + 1
-    has_next = page_index < total_pages - 1
-    has_prev = page_index > 0
+    return [start, end, total_pages]
+
+
+@app.route('/')
+@app.route('/page/<int:page>')
+def posts(page=1, paginate_by=10):
+    page_index = page - 1
+    [start, end, total_pages] = paginate(page_index)
 
     posts = session.query(Post)
     posts = posts.order_by(Post.datetime.desc())
     posts = posts[start:end]
+
+    has_next = page_index < total_pages - 1
+    has_prev = page_index > 0
 
     return render_template(
         'posts.html',
