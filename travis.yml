@@ -1,0 +1,10 @@
+language: python
+python:
+    - "2.7"
+install: pip install -r blog/requirements.txt
+script:
+    - PYTHONPATH=. python blog/tests/test_filter.py
+    - PYTHONPATH=. python blog/tests/test_pagination.py
+    - PYTHONPATH=. python blog/tests/test_views_acceptance.py
+    - PYTHONPATH=. python blog/tests/test_views_integration.py
+
