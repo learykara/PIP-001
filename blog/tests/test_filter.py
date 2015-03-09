@@ -4,7 +4,6 @@ import datetime
 
 os.environ['CONFIG_PATH'] = 'blog.config.TestingConfig'
 
-import blog
 from blog.filters import dateformat
 
 
