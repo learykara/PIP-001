@@ -91,6 +91,28 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(
             data.get('message'), 'Request must accept application/json data')
 
+    def test_delete_post(self):
+        """Delete a single post that exists in the db"""
+        self.seed_db()
+
+        response = self.client.delete('/api/posts/2', headers=self.headers)
+
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.mimetype, 'application/json')
+        # self.assertEqual(response.data, None)
+
+    def test_delete_nonexistent_post(self):
+        """Attempt to delete a single post that doesn't exist"""
+        response = self.client.delete('/api/posts/1', headers=self.headers)
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        data = json.loads(response.data)
+
+        self.assertEqual(
+            data.get('message'), 'Could not delete post with id 1')
+
 
 if __name__ == '__main__':
     unittest.main()

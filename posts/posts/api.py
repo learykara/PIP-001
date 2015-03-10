@@ -20,7 +20,7 @@ def get_all_posts():
 
 @app.route('/api/posts/<int:id>', methods=['GET'])
 @decorators.accept('application/json')
-def get_single_post(id): # same name as above?
+def get_single_post(id):
     """Single post endpoint"""
     post = session.query(Post).get(id)
 
@@ -31,3 +31,18 @@ def get_single_post(id): # same name as above?
 
     data = json.dumps(post.to_dict())
     return Response(data, 200, mimetype='application/json')
+
+
+@app.route('/api/posts/<int:id>', methods=['DELETE'])
+@decorators.accept('application/json')
+def delete_post(id):
+    """Delete a single post with ID `id`"""
+    post = session.query(Post).get(id)
+
+    if not post:
+        message = 'Could not delete post with id {}'.format(id)
+        data = json.dumps({'message': message})
+        return Response(data, 404, mimetype='application/json')
+
+    post.remove()
+    return Response([], 204, mimetype='application/json')
