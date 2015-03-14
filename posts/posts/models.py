@@ -1,4 +1,6 @@
-from sqlalchemy import Column, Integer, String, Sequence
+import json
+
+from sqlalchemy import Column, Integer, String
 
 from database import Base, session
 
@@ -28,3 +30,8 @@ class Post(Base, ModelUtils):
             'title': self.title,
             'body': self.body
         }
+
+    def update(self, value_dict):
+        value_dict = json.loads(value_dict)
+        self.title = value_dict.get('title', self.title)
+        self.body = value_dict.get('body', self.body)

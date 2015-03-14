@@ -171,6 +171,97 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(post.get('title'), 'Post with whistles')
         self.assertEqual(post.get('body'), 'Still a test')
 
+    def test_post_post(self):
+        """Posting a new post"""
+        data = {
+            'title': 'Example post',
+            'body': 'Just a test'
+        }
+
+        response = self.client.post(
+            '/api/posts', data=json.dumps(data),
+            content_type='application/json', headers=self.headers)
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.mimetype, 'application/json')
+        self.assertEqual(
+            urlparse(response.headers.get('Location')).path, '/api/posts/1')
+
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data.get('id'), 1)
+        self.assertEqual(response_data.get('title'), data.get('title'))
+        self.assertEqual(response_data.get('body'), data.get('body'))
+
+        posts = session.query(Post).all()
+        self.assertEqual(len(posts), 1)
+
+        post = posts[0]
+        self.assertEqual(post.title, data.get('title'))
+        self.assertEqual(post.body, data.get('body'))
+
+    def test_unsupported_mimetype(self):
+        """Send data of incorrect type to POST endpoint"""
+        data = '<xml></xml'
+        response = self.client.post(
+            '/api/posts', data=json.dumps(data),
+            content_type='application/xml', headers=self.headers)
+
+        self.assertEqual(response.status_code, 415)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        data = json.loads(response.data)
+        self.assertEqual(
+            data.get('message'), 'Request must contain application/json data')
+
+    def test_invalid_data(self):
+        """Posting a post with invalid body"""
+        data = {
+            'title': 'Example Post',
+            'body': 32
+        }
+
+        response = self.client.post(
+            '/api/posts', data=json.dumps(data),
+            content_type='application/json', headers=self.headers)
+
+        self.assertEqual(response.status_code, 422)
+
+        data = json.loads(response.data)
+        self.assertEqual(data.get('message'), "32 is not of type 'string'")
+
+    def test_missing_data(self):
+        """Post a post with a missing body"""
+        data = {
+            'title': 'Example Post'
+        }
+
+        response = self.client.post(
+            '/api/posts', data=json.dumps(data),
+            content_type='application/json', headers=self.headers)
+
+        self.assertEqual(response.status_code, 422)
+
+        data = json.loads(response.data)
+        self.assertEqual(data.get('message'), "'body' is a required property")
+
+    def test_post_put(self):
+        """Update a single post"""
+        self.seed_db()
+        data = {
+            'title': 'Updated title',
+            'body': 'Updated body'
+        }
+
+        response = self.client.put(
+            '/api/posts/1', data=json.dumps(data),
+            content_type='application/json', headers=self.headers)
+
+        self.assertEqual(response.status_code, 201)
+
+        response_data = json.loads(response.data)
+        self.assertEqual(response_data.get('title'), data.get('title'))
+        self.assertEqual(response_data.get('body'), data.get('body'))
+
 
 if __name__ == '__main__':
     unittest.main()
