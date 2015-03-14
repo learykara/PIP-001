@@ -1,7 +1,8 @@
 import json
 
 from flask import request, Response, url_for
-from jsonschema import validate, ValidationError
+# from jsonschema import validate, ValidationError
+from sqlalchemy import func
 
 import decorators
 from posts import app
@@ -13,7 +14,18 @@ from database import session
 @decorators.accept('application/json')
 def get_all_posts():
     """Get a list of posts"""
-    posts = session.query(Post).all()
+    posts = session.query(Post)
+    title_like = request.args.get('title_like')
+    body_like = request.args.get('body_like')
+
+    if title_like:
+        posts = posts.filter(
+            func.lower(Post.title).contains(title_like.lower()))
+    if body_like:
+        posts = posts.filter(
+            func.lower(Post.body).contains(body_like.lower()))
+    posts = posts.all()
+
     data = json.dumps([post.to_dict() for post in posts])
     return Response(data, 200, mimetype='application/json')
 

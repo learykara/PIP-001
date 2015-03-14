@@ -22,8 +22,11 @@ class TestAPI(unittest.TestCase):
         Base.metadata.drop_all(engine)
 
     def seed_db(self):
-        Post(title='Post A', body='Just a test').save()
-        Post(title='Post B', body='Still a test').save()
+        Post(title='Post with bells', body='Just a test').save()
+        Post(title='Post with whistles', body='Still a test').save()
+        Post(
+            title='Post with bells and whistles',
+            body='All of the tests.').save()
 
     @property
     def headers(self):
@@ -49,10 +52,10 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.mimetype, 'application/json')
 
         data = json.loads(response.data)
-        self.assertEqual(len(data), 2)
+        self.assertEqual(len(data), 3)
 
         post_a = data[0]
-        self.assertEqual(post_a.get('title'), 'Post A')
+        self.assertEqual(post_a.get('title'), 'Post with bells')
         self.assertEqual(post_a.get('body'), 'Just a test')
 
     def test_get_single_post(self):
@@ -67,7 +70,7 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.mimetype, 'application/json')
 
         post = json.loads(response.data)
-        self.assertEqual(post.get('title'), 'Post B')
+        self.assertEqual(post.get('title'), 'Post with whistles')
         self.assertEqual(post.get('body'), 'Still a test')
 
     def test_get_nonexistent_post(self):
@@ -112,6 +115,61 @@ class TestAPI(unittest.TestCase):
 
         self.assertEqual(
             data.get('message'), 'Could not delete post with id 1')
+
+    def test_get_posts_with_title(self):
+        """Filtering posts by title"""
+        self.seed_db()
+
+        response = self.client.get(
+            '/api/posts?title_like=whistles', headers=self.headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        posts = json.loads(response.data)
+        self.assertEqual(len(posts), 2)
+
+        post = posts[0]
+        self.assertEqual(post.get('title'), 'Post with whistles')
+        self.assertEqual(post.get('body'), 'Still a test')
+
+        post = posts[1]
+        self.assertEqual(post.get('title'), 'Post with bells and whistles')
+        self.assertEqual(post.get('body'), 'All of the tests.')
+
+    def test_get_posts_with_body(self):
+        """Filtering posts by body"""
+        self.seed_db()
+
+        response = self.client.get(
+            '/api/posts?body_like=tests', headers=self.headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        posts = json.loads(response.data)
+        self.assertEqual(len(posts), 1)
+
+        post = posts[0]
+        self.assertEqual(post.get('title'), 'Post with bells and whistles')
+
+    def test_get_posts_with_title_and_body(self):
+        """Filtering by title and body"""
+        self.seed_db()
+
+        response = self.client.get(
+            '/api/posts?title_like=whistles&body_like=still',
+            headers=self.headers)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        posts = json.loads(response.data)
+        self.assertEqual(len(posts), 1)
+
+        post = posts[0]
+        self.assertEqual(post.get('title'), 'Post with whistles')
+        self.assertEqual(post.get('body'), 'Still a test')
 
 
 if __name__ == '__main__':
