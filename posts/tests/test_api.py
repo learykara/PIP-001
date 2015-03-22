@@ -16,6 +16,7 @@ class TestAPI(unittest.TestCase):
     def setUp(self):
         self.client = app.test_client()
         Base.metadata.create_all(engine)
+        self.headers = [('Accept', 'application/json')]
 
     def tearDown(self):
         session.close()
@@ -27,10 +28,6 @@ class TestAPI(unittest.TestCase):
         Post(
             title='Post with bells and whistles',
             body='All of the tests.').save()
-
-    @property
-    def headers(self):
-        return [('Accept', 'application/json')]
 
     def test_get_empty_posts(self):
         """Get posts from an empty database"""
@@ -102,7 +99,6 @@ class TestAPI(unittest.TestCase):
 
         self.assertEqual(response.status_code, 204)
         self.assertEqual(response.mimetype, 'application/json')
-        # self.assertEqual(response.data, None)
 
     def test_delete_nonexistent_post(self):
         """Attempt to delete a single post that doesn't exist"""
@@ -201,7 +197,7 @@ class TestAPI(unittest.TestCase):
 
     def test_unsupported_mimetype(self):
         """Send data of incorrect type to POST endpoint"""
-        data = '<xml></xml'
+        data = '<xml></xml>'
         response = self.client.post(
             '/api/posts', data=json.dumps(data),
             content_type='application/xml', headers=self.headers)
