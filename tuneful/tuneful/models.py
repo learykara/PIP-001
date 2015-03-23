@@ -48,7 +48,8 @@ class File(Base, ModelUtils):
     def to_dict(self):
         return {
             'id': self.id,
-            'name': self.name
+            'name': self.filename,
+            'path': url_for('uploaded_file', filename=self.filename)
         }
 
 

@@ -146,7 +146,8 @@ Tuneful.prototype.onUploadDone = function(data) {
     console.log("Uploading file succeeded");
     data = {
         file: {
-            id: data.id
+            id: data.id,
+            name: data.name
         }
     }
     // Make a POST request to add the song

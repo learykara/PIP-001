@@ -42,3 +42,39 @@ def put_song(song_id):
         song.file.filename = filename
         song.save()
     return Response(json.dumps(song.to_dict()), 201, mimetype=MIMETYPE)
+
+
+@app.route('/api/songs', methods=['POST'])
+def post_song():
+    """Add a new song to the db"""
+    file = request.json.get('file')
+    if not file:
+        data = {'message': 'Could not load data'}
+        return Response(json.dumps(data), 404, mimetype=MIMETYPE)
+
+    new_file = File(filename=file.get('name')).save()
+    song = Song(file_id=new_file.id).save()
+
+    return Response(json.dumps(song.to_dict()), 201, mimetype=MIMETYPE)
+
+
+@app.route('/uploads/<filename>', methods=['GET'])
+def uploaded_file(filename):
+    return send_from_directory(upload_path(), filename)
+
+
+@app.route('/api/files', methods=['POST'])
+@decorators.require('multipart/form-data')
+@decorators.accept('application/json')
+def file_post():
+    file = request.files.get('file')
+    if not file:
+        data = {'message': 'Could not find file data'}
+        return Response(json.dumps(data), 422, mimetype=MIMETYPE)
+
+    filename = secure_filename(file.filename)
+    db_file = File(filename=filename).save()
+    file.save(upload_path(filename))
+
+    data = db_file.to_dict()
+    return Response(json.dumps(data), 201, mimetype=MIMETYPE)
