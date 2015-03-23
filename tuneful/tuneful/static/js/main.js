@@ -17,6 +17,10 @@ var Tuneful = function() {
     $("#songs").on("click", "#add-button",
                    this.onAddButtonClicked.bind(this));
 
+    // Delete the song when the delete button is clicked
+    $("#songs").on("click", ".delete-song",
+                    this.onDeleteClicked.bind(this));
+
     // When the user selects a file call the onFileAdded function
     this.fileInput = $("#file-input");
     this.fileInput.change(this.onFileAdded.bind(this));
@@ -32,6 +36,15 @@ var Tuneful = function() {
     this.songs = [];
     // Get the current list of uploaded songs
     this.getSongs();
+
+};
+
+Tuneful.prototype.onDeleteClicked = function(event) {
+    var songId = $(event.target).siblings('a').attr('data-id');
+    $.ajax({
+        method: 'DELETE',
+        url: 'http://localhost:8080/api/songs/' + songId
+    });
 };
 
 Tuneful.prototype.onSongClicked = function(event) {

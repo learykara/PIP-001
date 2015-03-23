@@ -20,7 +20,6 @@ a {
 a:hover {
   outline: none;
   color: #252A3A;
-  text-decoration: none;
 }
 
 header {
@@ -105,5 +104,31 @@ div#play-pause i {
 
 img.spin {
     animation: spin 3s linear infinite;
+}
+
+#song-list-template ul {
+    position: relative;
+}
+
+.delete-song {
+    position: absolute;
+    left: 10px;
+    top: 0;
+    width: 20px;
+    height: 30px;
+    cursor: pointer;
+}
+
+.delete-song::after {
+    top: 56%;
+    width: 12px;
+    height: 2px;
+    background-color: #8E0818;
+    content: '';
+    position: absolute;
+}
+
+.delete-song:hover::after {
+    background-color: #E5838F;
 }
 

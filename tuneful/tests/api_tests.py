@@ -14,6 +14,7 @@ from tuneful.models import File, Song
 from tuneful.utils import upload_path
 from tuneful.database import Base, engine, session
 
+
 class TestAPI(unittest.TestCase):
     """ Tests for the tuneful API """
 
@@ -43,6 +44,15 @@ class TestAPI(unittest.TestCase):
             Song(file_id=file.id).save()
 
     def test_get_all_songs(self):
+        # Test with no songs
+        response = self.client.get('/api/songs')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.mimetype, 'application/json')
+
+        data = json.loads(response.data)
+        self.assertEqual(len(data), 0)
+
+        # Seed database and test for songs
         self.seed_db()
 
         response = self.client.get('/api/songs')
@@ -54,3 +64,18 @@ class TestAPI(unittest.TestCase):
 
         song = data[0]
         self.assertEqual(song.get('file').get('name'), 'test_song_1.mp3')
+
+    def test_delete_song(self):
+        """Delete a song that may or may not exist in database"""
+
+        # Test for song that doesn't exist
+        response = self.client.delete('/api/songs/1')
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, '')
+
+        self.seed_db()
+        num_songs = len(session.query(Song).all())
+        response = self.client.delete('/api/songs/1')
+        self.assertEqual(response.status_code, 204)
+        self.assertEqual(response.data, '')
+        self.assertEqual(len(session.query(Song).all()), num_songs - 1)

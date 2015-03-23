@@ -20,3 +20,11 @@ def get_songs():
     """Return a json object of all the songs in the db"""
     songs = [song.to_dict() for song in session.query(Song).all()]
     return Response(json.dumps(songs), 200, mimetype=MIMETYPE)
+
+
+@app.route('/api/songs/<int:song_id>', methods=['DELETE'])
+def delete_song(song_id):
+    to_delete = session.query(Song).get(song_id)
+    if to_delete:
+        to_delete.delete()
+    return Response([], 204, mimetype=MIMETYPE)
