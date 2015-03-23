@@ -5,8 +5,8 @@ from tuneful.models import File, Song
 
 def seed_db():
     for x in range(10):
-        filename = forgery_py.internet.domain_name()
-        file = File(filename=filename).save()
+        filename = forgery_py.lorem_ipsum.word()
+        file = File(filename='{}.mp3'.format(filename)).save()
         Song(file_id=file.id).save()
 
 

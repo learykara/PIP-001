@@ -28,3 +28,17 @@ def delete_song(song_id):
     if to_delete:
         to_delete.delete()
     return Response([], 204, mimetype=MIMETYPE)
+
+
+@app.route('/api/songs/<int:song_id>', methods=['PUT'])
+def put_song(song_id):
+    """Update the filename of a song. If the song doesn't exist, create it"""
+    song = session.query(Song).get(song_id)
+    filename = request.json.get('filename')
+    if not song:
+        file = File(filename=filename).save()
+        song = Song(file_id=file.id).save()
+    else:
+        song.file.filename = filename
+        song.save()
+    return Response(json.dumps(song.to_dict()), 201, mimetype=MIMETYPE)

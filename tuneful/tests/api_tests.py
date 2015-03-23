@@ -79,3 +79,30 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 204)
         self.assertEqual(response.data, '')
         self.assertEqual(len(session.query(Song).all()), num_songs - 1)
+
+    def test_update_song_existing(self):
+        """Update the filename of a song that exists in the db"""
+        self.seed_db()
+        num_songs = len(session.query(Song).all())
+
+        response = self.client.put(
+            '/api/songs/1', data=json.dumps({'filename': 'new_file_name.mp3'}),
+            headers={'Content-type': 'application/json'})
+        self.assertEqual(response.status_code, 201)
+
+        song = json.loads(response.data)
+        self.assertEqual(song.get('file').get('name'), 'new_file_name.mp3')
+        self.assertEqual(len(session.query(Song).all()), num_songs)
+
+    def test_update_song_nonexisting(self):
+        """Update the filename of a song that doesn't exist in the db.
+        Check that the song has been added to the db."""
+        self.assertEqual(len(session.query(Song).all()), 0)
+        response = self.client.put(
+            '/api/songs/1', data=json.dumps({'filename': 'new_file_name.mp3'}),
+            headers={'Content-type': 'application/json'})
+        self.assertEqual(response.status_code, 201)
+
+        song = json.loads(response.data)
+        self.assertEqual(song.get('file').get('name'), 'new_file_name.mp3')
+        self.assertEqual(len(session.query(Song).all()), 1)
